@@ -3,29 +3,32 @@ Smart Cuckoo Filter
 
 Overview
 --------
-Cuckoo filter is a Bloom filter replacement for approximated set-membership queries. While Bloom filters are well-known space-efficient data structures to serve queries like "if item x is in a set?", they do not support deletion. Their variances to enable deletion (like counting Bloom filters) usually require much more space.
 
-Cuckoo ﬁlters provide the ﬂexibility to add and remove items dynamically. A cuckoo filter is based on cuckoo hashing (and therefore named as cuckoo filter).  It is essentially a cuckoo hash table storing each key's fingerprint. Cuckoo hash tables can be highly compact, thus a cuckoo filter could use less space than conventional Bloom ﬁlters, for applications that require low false positive rates (< 3%).
+Smart Cuckoo filter(SCF) is a variant of Cuckoo filter with one slot in a bucket. SCF use the idea of disjoint-set to solve the endless loop problem. Quickly determine whether an element will fall into an endless loop before inserting it.
 
+For details about the algorithm and citations please use:
+
+["A Smart Cuckoo Filter with Disjoint-set to Detect the Endless loop"](https://www.raitconf.info/index.html) in proceedings of GCRAIT 2022 by Wendi Hua and Ping Xie
 
 API
 --------
-A smart cuckoo filter supports following operations:
 
-*  `Add(item)`: insert an item to the filter
-*  `Contain(item)`: return if item is already in the filter. Note that this method may return false positive results like Bloom filters
-*  `Delete(item)`: delete the given item from the filter. Note that to use this method, it must be ensured that this item is in the filter (e.g., based on records on external storage); otherwise, a false item may be deleted.
-*  `Size()`: return the total number of items currently in the filter
-*  `SizeInBytes()`: return the filter size in bytes
+A Smart Cuckoo Filter supports following operations:
 
-Here is a simple example in C++ for the basic usage of smart cuckoo filter.
+* `Add(item)`: insert an item to the filter
+* `Contain(item)`: return if item is already in the filter. Note that this method may return false positive results like Cuckoo filters
+* `Delete(item)`: delete the given item from the filter. Note that to use this method, it must be ensured that this item is in the filter (e.g., based on records on external storage); otherwise, a false item may be deleted.
+* `Size()`: return the total number of items currently in the filter
+* `SizeInBytes()`: return the filter size in bytes
+
+Here is a simple example in C++ for the basic usage of Smart Cuckoo Filter.
 More examples can be found in `example/` directory.
 
 ```cpp
-// Create a smart cuckoo filter where each item is of type size_t and
+// Create a Smart Cuckoo Filter where each item is of type size_t and
 // use 12 bits for each item, with capacity of total_items
 CuckooFilter<size_t, 12> filter(total_items);
-// Insert item 12 to this smart cuckoo filter
+// Insert item 12 to this Smart Cuckoo Filter
 filter.Add(12);
 // Check if previously inserted items are in the filter
 assert(filter.Contain(12) == cuckoofilter::Ok);
@@ -33,12 +36,13 @@ assert(filter.Contain(12) == cuckoofilter::Ok);
 
 Repository structure
 --------------------
-*  `src/`: the C++ header and implementation of smart cuckoo filter
-*  `example/test.cc`: an example of using smart cuckoo filter
 
+* `src/`: the C++ header and implementation of Smart Cuckoo Filter
+* `example/test.cc`: an example of using Smart Cuckoo Filter
 
 Build
 -------
+
 This libray depends on openssl library. Note that on MacOS 10.12, the header
 files of openssl are not available by default. It may require to install openssl
 and pass the path to `lib` and `include` directories to gcc, for example:
@@ -51,17 +55,7 @@ $ export CFLAGS="-I/usr/local/Cellar/openssl/1.0.2j/include"
 ```
 
 To build the example (`example/test.cc`):
+
 ```bash
-$ make test
+make test
 ```
-
-
-Install
--------
-To install the cuckoofilter library:
-```bash
-$ make install
-```
-By default, the header files will be placed in `/usr/local/include/cuckoofilter`
-and the static library at `/usr/local/lib/cuckoofilter.a`.
-
